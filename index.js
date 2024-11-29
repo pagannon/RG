@@ -4,6 +4,7 @@ class GameEngine {
         this.height = height;
         this.map = this.generateMap();
         this.player = { x: Math.floor(width / 2), y: Math.floor(height / 2) };
+        this.monsters = this.generateMonsters();
     }
 
     generateMap() {
@@ -18,12 +19,27 @@ class GameEngine {
         return map;
     }
 
+    generateMonsters() {
+        const monsters = [];
+        for (let i = 0; i < 5; i++) { // Generate 5 monsters
+            let x, y;
+            do {
+                x = Math.floor(Math.random() * this.width);
+                y = Math.floor(Math.random() * this.height);
+            } while (this.map[y][x] === '#' || (x === this.player.x && y === this.player.y));
+            monsters.push({ x, y });
+        }
+        return monsters;
+    }
+
     drawMap() {
         for (let y = 0; y < this.height; y++) {
             let row = '';
             for (let x = 0; x < this.width; x++) {
                 if (this.player.x === x && this.player.y === y) {
                     row += '@';
+                } else if (this.monsters.some(monster => monster.x === x && monster.y === y)) {
+                    row += 'M';
                 } else {
                     row += this.map[y][x];
                 }
@@ -38,6 +54,36 @@ class GameEngine {
         if (newX >= 0 && newX < this.width && newY >= 0 && newY < this.height && this.map[newY][newX] === '.') {
             this.player.x = newX;
             this.player.y = newY;
+            this.checkCollision();
+        }
+    }
+
+    moveMonsters() {
+        for (const monster of this.monsters) {
+            const direction = Math.floor(Math.random() * 4);
+            let dx = 0, dy = 0;
+            switch (direction) {
+                case 0: dy = -1; break; // Up
+                case 1: dy = 1; break;  // Down
+                case 2: dx = -1; break; // Left
+                case 3: dx = 1; break;  // Right
+            }
+            const newX = monster.x + dx;
+            const newY = monster.y + dy;
+            if (newX >= 0 && newX < this.width && newY >= 0 && newY < this.height && this.map[newY][newX] === '.') {
+                monster.x = newX;
+                monster.y = newY;
+            }
+        }
+        this.checkCollision();
+    }
+
+    checkCollision() {
+        for (const monster of this.monsters) {
+            if (monster.x === this.player.x && monster.y === this.player.y) {
+                console.log('Game Over! You were killed by a monster.');
+                process.exit();
+            }
         }
     }
 
@@ -56,6 +102,7 @@ class GameEngine {
                 this.movePlayer(1, 0);
                 break;
         }
+        this.moveMonsters();
     }
 }
 
