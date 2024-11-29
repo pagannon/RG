@@ -2,8 +2,13 @@ class GameEngine {
     constructor(width, height) {
         this.width = width;
         this.height = height;
+        this.restart();
+    }
+
+    restart() {
+        this.isGameOver = false;
         this.map = this.generateMap();
-        this.player = { x: Math.floor(width / 2), y: Math.floor(height / 2) };
+        this.player = { x: Math.floor(this.width / 2), y: Math.floor(this.height / 2) };
         this.monsters = this.generateMonsters();
     }
 
@@ -101,13 +106,31 @@ class GameEngine {
     checkCollision() {
         for (const monster of this.monsters) {
             if (monster.x === this.player.x && monster.y === this.player.y) {
-                console.log('Game Over! You were killed by a monster.');
-                process.exit();
+                this.gameOver();
+                return true;
             }
         }
     }
 
+    gameOver() {
+        console.clear();
+        console.log('Game Over! You were killed by a monster.');
+        console.log('Press R to restart or Q to quit');
+        this.isGameOver = true;
+    }
+
     handleInput(input) {
+        if (this.isGameOver) {
+            this.gameOver();
+            
+            if (input.toLowerCase() === 'r') {
+                this.restart();
+            } else if (input.toLowerCase() === 'q') {
+                process.exit();
+            }
+            return;
+        }
+
         switch (input) {
             case 'w':
                 this.movePlayer(0, -1);
