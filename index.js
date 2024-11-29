@@ -23,10 +23,18 @@ class GameEngine {
         const monsters = [];
         for (let i = 0; i < 5; i++) { // Generate 5 monsters
             let x, y;
+            let attempts = 0;
             do {
                 x = Math.floor(Math.random() * this.width);
                 y = Math.floor(Math.random() * this.height);
+                attempts++;
             } while (this.map[y][x] === '#' || (x === this.player.x && y === this.player.y));
+
+            if (attempts === 100) {
+                console.warn('Could not place all monsters due to limited space.');
+                break;
+            }
+
             monsters.push({ x, y });
         }
         return monsters;
@@ -70,7 +78,19 @@ class GameEngine {
             }
             const newX = monster.x + dx;
             const newY = monster.y + dy;
-            if (newX >= 0 && newX < this.width && newY >= 0 && newY < this.height && this.map[newY][newX] === '.') {
+            const positionOccupied = this.monsters.some(otherMonster => 
+                otherMonster !== monster && 
+                otherMonster.x === newX && 
+                otherMonster.y === newY
+            );
+
+            if (newX >= 0 && 
+                newX < this.width && 
+                newY >= 0 && 
+                newY < this.height && 
+                this.map[newY][newX] === '.' && 
+                !positionOccupied
+            ) {
                 monster.x = newX;
                 monster.y = newY;
             }
