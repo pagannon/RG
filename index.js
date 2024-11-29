@@ -7,9 +7,26 @@ class GameEngine {
 
     restart() {
         this.isGameOver = false;
+        this.level = 1;
+        this.moveCount = 0;
         this.map = this.generateMap();
         this.player = { x: Math.floor(this.width / 2), y: Math.floor(this.height / 2) };
-        this.monsters = this.generateMonsters();
+
+        try {
+            this.monsters = this.generateMonsters();
+            if (this.monsters.length === 0) {
+                throw new Error('Failed to generate any monsters');
+            }
+        } catch (error) {
+            console.error('Failed to initialize monsters:', error);
+            this.monsters = [];
+        }
+    }
+
+    createMonsterPositionMap() {
+        return new Map(
+            this.monsters.map(m => [`${m.x},${m.y}`, true])
+        );
     }
 
     generateMap() {
@@ -46,12 +63,13 @@ class GameEngine {
     }
 
     drawMap() {
+        const monsterPositions = this.createMonsterPositionMap();
         for (let y = 0; y < this.height; y++) {
             let row = '';
             for (let x = 0; x < this.width; x++) {
                 if (this.player.x === x && this.player.y === y) {
                     row += '@';
-                } else if (this.monsters.some(monster => monster.x === x && monster.y === y)) {
+                } else if (monsterPositions.has(`${x},${y}`)) {
                     row += 'M';
                 } else {
                     row += this.map[y][x];
@@ -69,6 +87,24 @@ class GameEngine {
             this.player.y = newY;
             this.checkCollision();
         }
+        else {
+            console.log('Cannot move there!');
+        }
+    }
+
+    isValidMove(x, y, ignoreMonster = null) {
+        const positionOccupied = this.monsters.some(monster => 
+            monster !== ignoreMonster && 
+            monster.x === x && 
+            monster.y === y
+        );
+        
+        return x >= 0 && 
+            x < this.width && 
+            y >= 0 && 
+            y < this.height && 
+            this.map[y][x] === '.' && 
+            !positionOccupied;
     }
 
     moveMonsters() {
@@ -83,23 +119,13 @@ class GameEngine {
             }
             const newX = monster.x + dx;
             const newY = monster.y + dy;
-            const positionOccupied = this.monsters.some(otherMonster => 
-                otherMonster !== monster && 
-                otherMonster.x === newX && 
-                otherMonster.y === newY
-            );
 
-            if (newX >= 0 && 
-                newX < this.width && 
-                newY >= 0 && 
-                newY < this.height && 
-                this.map[newY][newX] === '.' && 
-                !positionOccupied
-            ) {
+            if (this.isValidMove(newX, newY, monster)) {
                 monster.x = newX;
                 monster.y = newY;
             }
         }
+
         this.checkCollision();
     }
 
@@ -122,7 +148,7 @@ class GameEngine {
     handleInput(input) {
         if (this.isGameOver) {
             this.gameOver();
-            
+
             if (input.toLowerCase() === 'r') {
                 this.restart();
             } else if (input.toLowerCase() === 'q') {
@@ -146,6 +172,12 @@ class GameEngine {
                 break;
         }
         this.moveMonsters();
+        this.moveCount++;
+        if (this.moveCount % 20 === 0) {
+            this.level++;
+            this.monsters.push(...this.generateMonsters(Math.min(this.level, 3)));
+            console.log(`Level ${this.level}! More monsters appeared!`);
+        }
     }
 }
 
@@ -161,7 +193,7 @@ process.stdin.on('data', (key) => {
     if (key === '\u0003') { // Ctrl+C
         process.exit();
     }
-    game.handleInput(key);
     console.clear();
+    game.handleInput(key);
     game.drawMap();
 });
