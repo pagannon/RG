@@ -10,7 +10,16 @@ class GameEngine {
         this.level = 1;
         this.moveCount = 0;
         this.map = this.generateMap();
-        this.player = { x: Math.floor(this.width / 2), y: Math.floor(this.height / 2) };
+
+        let x = Math.floor(this.width / 2);
+        let y = Math.floor(this.height / 2);
+        // Ensure player doesn't spawn on a wall
+        while (this.map[y][x] === '#') {
+            x = Math.floor(Math.random() * this.width);
+            y = Math.floor(Math.random() * this.height);
+        }
+
+        this.player = { x, y };
 
         try {
             this.monsters = this.generateMonsters();
@@ -41,9 +50,9 @@ class GameEngine {
         return map;
     }
 
-    generateMonsters() {
+    generateMonsters(numMonsters = 5) {
         const monsters = [];
-        for (let i = 0; i < 5; i++) { // Generate 5 monsters
+        for (let i = 0; i < numMonsters; i++) { // Generate 5 monsters
             let x, y;
             let attempts = 0;
             do {
@@ -147,8 +156,6 @@ class GameEngine {
 
     handleInput(input) {
         if (this.isGameOver) {
-            this.gameOver();
-
             if (input.toLowerCase() === 'r') {
                 this.restart();
             } else if (input.toLowerCase() === 'q') {
@@ -171,11 +178,13 @@ class GameEngine {
                 this.movePlayer(1, 0);
                 break;
         }
+
         this.moveMonsters();
         this.moveCount++;
         if (this.moveCount % 20 === 0) {
             this.level++;
-            this.monsters.push(...this.generateMonsters(Math.min(this.level, 3)));
+            const additionalMonsters = Math.min(this.level, 3);
+            this.monsters.push(...this.generateMonsters(additionalMonsters));
             console.log(`Level ${this.level}! More monsters appeared!`);
         }
     }
