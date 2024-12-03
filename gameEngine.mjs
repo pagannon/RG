@@ -47,7 +47,7 @@ export class GameEngine {
                 attempts++;
             } while (this.map[y][x] === '#' || (x === this.player.x && y === this.player.y));
 
-            if (attempts === 100) break;
+            if (attempts >= 100) break;
             monsters.push({ x, y });
         }
         return monsters;
