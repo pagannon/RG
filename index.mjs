@@ -13,18 +13,19 @@ if (process.stdin.isTTY) {
 process.stdin.resume();
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', (key) => {
-    if (key === '\u0003' || key.toLowerCase() === 'q') { // Ctrl+C / q / Q
+    let lcKey = key.toLowerCase()
+    if (lcKey === '\u0003' || lcKey === 'q') { // Ctrl+C / q / Q
         process.exit();
     }
 
     if (engine.getGameState().isGameOver) {
-        if (key.toLowerCase() === 'r') {
+        if (lcKey === 'r') {
             engine.restart();
         }
     }
     else {
         renderer.clear();
-        engine.update(key);
+        engine.update(lcKey);
         let state = engine.getGameState();
                 
         if (state.isGameOver) {
