@@ -6,10 +6,11 @@ export class Renderer {
             wall: '#',
             empty: '.'
         };
+        this.gameContainer = document.getElementById('game-container');
     }
 
     clear() {
-        console.clear();
+        this.gameContainer.innerHTML = '';
     }
 
     draw(gameState) {
@@ -17,28 +18,33 @@ export class Renderer {
         const monsterPositions = new Map(
             monsters.map(m => [`${m.x},${m.y}`, true])
         );
-        
+
+        this.clear();
+
         for (let y = 0; y < height; y++) {
-            let row = '';
             for (let x = 0; x < width; x++) {
+                const tile = document.createElement('div');
                 if (player.x === x && player.y === y) {
-                    row += this.symbols.player;
+                    tile.textContent = this.symbols.player;
                 } else if (monsterPositions.has(`${x},${y}`)) {
-                    row += this.symbols.monster;
+                    tile.textContent = this.symbols.monster;
                 } else {
-                    row += map[y][x];
+                    tile.textContent = map[y][x];
                 }
+                this.gameContainer.appendChild(tile);
             }
-            console.log(row);
         }
     }
 
     showGameOver() {
-        console.log('Game Over! You were killed by a monster.');
-        console.log('Press R to restart or Q to quit');
+        const gameOverMessage = document.createElement('div');
+        gameOverMessage.textContent = 'Game Over! You were killed by a monster. Press R to restart or Q to quit';
+        this.gameContainer.appendChild(gameOverMessage);
     }
 
     showLevelUp(level) {
-        console.log(`Level ${level}! More monsters appeared!`);
+        const levelUpMessage = document.createElement('div');
+        levelUpMessage.textContent = `Level ${level}! More monsters appeared!`;
+        this.gameContainer.appendChild(levelUpMessage);
     }
 }
