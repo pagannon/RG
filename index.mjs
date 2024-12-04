@@ -6,28 +6,21 @@ const renderer = new Renderer();
 
 renderer.draw(engine.getGameState());
 
-if (process.stdin.isTTY) {
-    process.stdin.setRawMode(true);
-}
-
-process.stdin.resume();
-process.stdin.setEncoding('utf8');
-process.stdin.on('data', (key) => {
-    let lcKey = key.toLowerCase()
-    if (lcKey === '\u0003' || lcKey === 'q') { // Ctrl+C / q / Q
-        process.exit();
+document.addEventListener('keydown', (event) => {
+    let key = event.key.toLowerCase();
+    if (key === 'q') {
+        window.close();
     }
 
     if (engine.getGameState().isGameOver) {
-        if (lcKey === 'r') {
+        if (key === 'r') {
             engine.restart();
         }
-    }
-    else {
+    } else {
         renderer.clear();
-        engine.update(lcKey);
+        engine.update(key);
         let state = engine.getGameState();
-                
+
         if (state.isGameOver) {
             renderer.showGameOver();
         } else {
